@@ -13,23 +13,53 @@ photo = ImageTk.PhotoImage(img)
 label = Label(image = photo)
 label.pack()
 
-bv          = StringVar()
-max_weight  = StringVar()
-wheel_size  = StringVar()
-top_speed   = StringVar()
-ramp_time   = StringVar()
-gear_ratio  = StringVar()
-incline_angle = StringVar()
-
+bv          = IntVar()
+max_weight  = DoubleVar()
+wheel_size  = DoubleVar()
+top_speed   = DoubleVar()
+ramp_time   = DoubleVar()
+gear_ratio  = DoubleVar()
+incline_angle = DoubleVar()
 var = StringVar()
 
+
 def submit():
+    #_____________Input_____________
     batvol=bv.get()
     maxweight = max_weight.get()
     wheelsize = wheel_size.get()
     topspeed  = top_speed.get()
+    ramptime  = ramp_time.get()
+    gearratio = gear_ratio.get()
+    inclineangle = incline_angle.get()
+    #_____________Output____________
+    #	1. P=T*N/9554
+	#2. T_motor = F*r / gear_ratio
+	#3. F_total =  F_friction + F_inertia+F_gravity = 
+	#                                        μ*mg （or μmg*sinθ）+ ma  + mgsinθ(if on a slop)    a=△V/t（m/s²）
+    # P=T*N/9554 (or P = T*ω）
+    # ω = v/r
+    rpmvalue = topspeed/60/(3.1415926*wheelsize)*1000
+    rpm.set(f"RPM:{rpmvalue:0.2f}")
+
+    forcevalue = maxweight*((topspeed*1000/3600)/ramptime) #a is m/s
+    torquevlue = forcevalue*wheelsize/2/gearratio
+    powervalue = torquevlue*(rpmvalue*gearratio)/9554 #Or use formular P = t* w, the w is based on tire size, but this formular N means motor RPM
+    torque.set(f"Torque:{torquevlue:0.7f}N*M")
+    power.set(f"Power:{powervalue:0.7f}kW")
+
+
+
+
+
+
+
+
+    
     print("Here is the information:...")
     tkinter.messagebox.showinfo("Hi, here is the info...", f'You want to select a motor for a ride-on({maxweight}Kg) to realize {topspeed}km/h with {batvol}V battery, and the wheel size is {wheelsize}mm ')
+
+    
     #f is to turn the variables into number
 def exit1():
     exit()
@@ -78,6 +108,23 @@ input7 = Label(window, text = "Incline angle:")
 input7.place(x=10, y=300)
 entry7 = Entry(window, textvar = incline_angle)
 entry7.place(x=110, y=300)
+
+# Output_____________________________________________
+torque = DoubleVar()
+torque.set("Torque:")
+output1 = Label(window, textvariable = torque)
+output1.place(x=10, y=400)
+
+rpm = DoubleVar()
+rpm.set("RPM:")
+output2 = Label(window, textvariable = rpm)
+output2.place(x=400, y=400)
+
+power = DoubleVar()
+power.set("Power:")
+output3 = Label(window, textvariable = power)
+output3.place(x=400, y=450)
+
 
 label2 = Label(window, text = " Powered by Kevin @Radioflyer", fg = 'black')
 label2.pack(side = BOTTOM, fill = NONE)
