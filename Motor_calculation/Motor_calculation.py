@@ -2,10 +2,11 @@ from tkinter import *
 #import tkinter as tk
 from PIL import Image , ImageTk #pip install pillow
 import tkinter.messagebox
+import math
 
 window = Tk()
 window.geometry("600x600")
-window.title("Radioflyer motor selection tool v0.1")
+window.title("Radioflyer motor selection tool v0.2")
 
 img = Image.open("C:/Users/kzhou/Desktop/RF_projects/Git/Python_learning/Motor_calculation/Photo/Logo.png")
 img1 = Image.open("C:/Users/kzhou/Desktop/RF_projects/Git/Python_learning/Motor_calculation/Photo/Incline.png")
@@ -18,41 +19,55 @@ label.pack()
 image_label = Label(image= photo1)
 image_label.place(x = 600, y=200)
 
-bv          = IntVar()
-max_weight  = DoubleVar()
+bv          = IntVar() 
+bv.set(36)
+max_weight  = DoubleVar() 
+max_weight.set(86.6)
 wheel_size  = DoubleVar()
+wheel_size.set(0.29)
 top_speed   = DoubleVar()
+top_speed.set(18)
 ramp_time   = DoubleVar()
 gear_ratio  = DoubleVar()
+gear_ratio.set(60.67)
 incline_angle = DoubleVar()
+incline_angle.set(8)
 var = StringVar()
+gearbox_efficiency = DoubleVar()
+gearbox_efficiency.set(1)
+motor_efficiency = DoubleVar()
+motor_efficiency.set(1)
 
 
 def submit():
     #_____________Input_____________
-    batvol=bv.get()
+    batvol    = bv.get()
     maxweight = max_weight.get()
     wheelsize = wheel_size.get()
     topspeed  = top_speed.get()
     ramptime  = ramp_time.get()
     gearratio = gear_ratio.get()
     inclineangle = incline_angle.get()
+    effigearbox = gearbox_efficiency.get()
+    effimotor   = motor_efficiency.get()
+
     #_____________Output____________
     #	1. P=T*N/9554
 	#2. T_motor = F*r / gear_ratio
-	#3. F_total =  F_friction + F_inertia+F_gravity = 
-	#                                        μ*mg （or μmg*sinθ）+ ma  + mgsinθ(if on a slop)    a=△V/t（m/s²）
+	#3. F_total =  F_friction + F_gravity + F_air = 
+	#                                        μ*mg （or μmg*cosθ u=0.01 for rubber tire）+ mgsinθ(if on a slop) +  1/2*air density * drag coeefficient * Frotal area * v*v 
     # P=T*N/9554 (or P = T*ω）
     # ω = v/r
     rpmvalue = topspeed/60/(3.1415926*wheelsize)*1000
     motor_rpm = rpmvalue*gearratio
     rpm.set(f"RPM:{rpmvalue:0.2f}/{motor_rpm:0.0f}")
-
-    forcevalue = maxweight*((topspeed*1000/3600)/ramptime) #a is m/s
+    forcevalue = maxweight*9.81*math.sin(math.pi/180*inclineangle) + 0.01* maxweight*9.81*math.cos(math.pi/180*inclineangle)
     torquevlue = forcevalue*wheelsize/2/gearratio
-    powervalue = torquevlue*(rpmvalue*gearratio)/9554 #Or use formular P = t* w, the w is based on tire size, but this formular N means motor RPM
-    torque.set(f"Torque:{torquevlue:0.4f}N*M")
-    power.set(f"Power:{powervalue:0.4f}kW")
+    powervalue = torquevlue*(rpmvalue*gearratio)/9554/effigearbox/effimotor #Or use formular P = t* w, the w is based on tire size, but this formular N means motor RPM
+    currentval = powervalue/batvol*1000
+    torque.set(f"Torque:{torquevlue:0.4f}N*m")
+    power.set(f"Power:{powervalue:0.4f}KW")
+    current.set(F"Current:{currentval:0.4f}A")
 
 
 
@@ -115,24 +130,40 @@ input7.place(x=10, y=300)
 entry7 = Entry(window, textvar = incline_angle)
 entry7.place(x=110, y=300)
 
+input8 = Label(window, text = "Gearbox efficiency:")
+input8.place(x=300, y=300)
+entry8 = Entry(window, textvar = gearbox_efficiency)
+entry8.place(x=400, y=300)
+
+input9 = Label(window, text = "Motor efficiency:")
+input9.place(x=10, y=350)
+entry9 = Entry(window, textvar = motor_efficiency)
+entry9.place(x=110, y=350)
+
 # Output_____________________________________________
 torque = DoubleVar()
-torque.set("Torque:")
+torque.set("Motor Torque:")
 output1 = Label(window, textvariable = torque)
 output1.place(x=10, y=400)
-Entry(window, textvariable= torque, state='readonly').place(x=10, y=400)
+Entry(window, textvariable= torque, state='readonly', width= 35).place(x=10, y=400)
 
 rpm = DoubleVar()
-rpm.set("RPM:")
+rpm.set("Gearbox RPM:")
 output2 = Label(window, textvariable = rpm)
-output2.place(x=400, y=400)
-Entry(window, textvariable= rpm, state='readonly').place(x=400, y=400)
+output2.place(x=300, y=400)
+Entry(window, textvariable= rpm, state='readonly', width= 35).place(x=300, y=400)
 
 power = DoubleVar()
-power.set("Power:")
+power.set("Motor input Power:")
 output3 = Label(window, textvariable = power)
-output3.place(x=400, y=450)
-Entry(window, textvariable= power, state='readonly').place(x=400, y=450)
+output3.place(x=300, y=450)
+Entry(window, textvariable= power, state='readonly', width= 35).place(x=300, y=450)
+
+current = DoubleVar()
+current.set("Current:")
+output4 = Label(window, textvariable = current)
+output4.place(x=10, y=450)
+Entry(window, textvariable= current, state='readonly', width= 35).place(x=10, y=450)
 
 
 label2 = Label(window, text = " Powered by Kevin @Radioflyer", fg = 'black')
